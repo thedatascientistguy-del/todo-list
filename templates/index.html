@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Todo List</h1>
+        
+        <form class="add-todo-form" action="/add" method="POST">
+            <input type="text" name="title" placeholder="Add a new todo..." required>
+            <button type="submit">Add</button>
+        </form>
+
+        <ul class="todo-list">
+            {% for todo in todos %}
+            <li class="todo-item {% if todo.completed %}completed{% endif %}" data-id="{{ todo._id }}">
+                <span class="todo-title">{{ todo.title }}</span>
+                <div class="todo-actions">
+                    <button class="toggle-btn" onclick="toggleTodo('{{ todo._id }}')">
+                        {% if todo.completed %}Undo{% else %}Complete{% endif %}
+                    </button>
+                    <button class="delete-btn" onclick="deleteTodo('{{ todo._id }}')">Delete</button>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <script src="{{ url_for('static', path='script.js') }}"></script>
+</body>
+</html>
