@@ -2,28 +2,22 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_CREDENTIALS = 'docker-hub-creds'
-        IMAGE_NAME = "faq4265/todo-list"
-        IMAGE_TAG = "latest"
-    }
-
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-        timeout(time: 30, unit: 'MINUTES')
+        DOCKER_IMAGE = "faq4265/todo-list:latest"
+        DOCKER_REGISTRY = "https://index.docker.io/v1/"
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
-                git url: 'https://github.com/thedatascientistguy-del/todo-list.git', branch: 'main'
+                git branch: 'main',
+                    url: 'https://github.com/thedatascientistguy-del/todo-list.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Standard Docker build without BuildKit
-                    sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
+                    docker.build("${DOCKER_IMAGE}")
                 }
             }
         }
@@ -31,8 +25,8 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_HUB_CREDENTIALS) {
-                        sh "docker push $IMAGE_NAME:$IMAGE_TAG"
+                    docker.withRegistry("${DOCKER_REGISTRY}", 'docker-hub-creds') {
+                        docker.image("${DOCKER_IMAGE}").push()
                     }
                 }
             }
@@ -41,7 +35,7 @@ pipeline {
 
     post {
         success {
-            echo "✅ Docker image $IMAGE_NAME:$IMAGE_TAG pushed successfully!"
+            echo "✅ Docker image built and pushed successfully!"
         }
         failure {
             echo "❌ Build or push failed!"
