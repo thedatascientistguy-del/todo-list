@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // Jenkins Docker Hub credentials ID
         DOCKER_HUB_CREDENTIALS = 'docker-hub-creds'
         IMAGE_NAME = "faq4265/todo-list"
         IMAGE_TAG = "latest"
@@ -23,7 +22,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'DOCKER_BUILDKIT=1 docker build -t $IMAGE_NAME:$IMAGE_TAG .'
+                    // Standard Docker build without BuildKit
+                    sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
                 }
             }
         }
