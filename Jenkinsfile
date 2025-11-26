@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    COMPOSE = "docker compose -f docker-compose-jenkins.yml"
+    COMPOSE = "docker-compose -f docker-compose-jenkins.yml"
   }
 
   stages {
