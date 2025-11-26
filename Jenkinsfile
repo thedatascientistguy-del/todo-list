@@ -2,43 +2,28 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "faq4265/todo-list:latest"
-        DOCKER_REGISTRY = "https://index.docker.io/v1/"
+        DOCKER_COMPOSE_FILE = 'docker-compose-jenkins.yml'
     }
 
     stages {
-        stage('Checkout SCM') {
+        stage('Checkout Code') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/thedatascientistguy-del/todo-list.git'
+                git branch: 'jenkins',
+                    url: 'https://github.com/thedatascientistguy-del/https://github.com/thedatascientistguy-del/todo-list.git'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build and Run Docker Containers') {
             steps {
-                script {
-                    docker.build("${DOCKER_IMAGE}")
-                }
-            }
-        }
-
-        stage('Push to Docker Hub') {
-            steps {
-                script {
-                    docker.withRegistry("${DOCKER_REGISTRY}", 'docker-hub-creds') {
-                        docker.image("${DOCKER_IMAGE}").push()
-                    }
-                }
+                sh 'docker-compose -f $DOCKER_COMPOSE_FILE down'  // stop old containers
+                sh 'docker-compose -f $DOCKER_COMPOSE_FILE up -d --build'
             }
         }
     }
 
     post {
-        success {
-            echo "✅ Docker image built and pushed successfully!"
-        }
-        failure {
-            echo "❌ Build or push failed!"
+        always {
+            echo 'Pipeline finished!'
         }
     }
 }
