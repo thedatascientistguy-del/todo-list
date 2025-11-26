@@ -1,31 +1,24 @@
+# Dockerfile - FastAPI app
+FROM python:3.11-slim
 
-# Use Python 3.12 slim image
-FROM python:3.12-slim
-
-# Set working directory
+# set working dir
 WORKDIR /app
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+# system deps (if you need build tools, uncomment)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential gcc libpq-dev \
+ && rm -rf /var/lib/apt/lists/*
 
-# Install system dependencies
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# copy requirements and install
+COPY requirements.txt /app/requirements.txt
+RUN python -m pip install --upgrade pip
+RUN pip install -r /app/requirements.txt
 
-# Copy requirements file
-COPY requirements.txt .
+# copy code (in Jenkins pipeline the host workspace will be volume-mounted over /app)
+COPY . /app
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy project files
-COPY . .
-
-# Expose port
 EXPOSE 8000
 
-# Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# default command (use uvicorn)
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+

@@ -1,29 +1,74 @@
 pipeline {
-    agent any
+  agent any
 
-    environment {
-        DOCKER_COMPOSE_FILE = 'docker-compose-jenkins.yml'
+  environment {
+    COMPOSE = "docker compose -f docker-compose-jenkins.yml"
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+        sh 'pwd; ls -la'
+      }
     }
 
-    stages {
-        stage('Checkout Code') {
-            steps {
-                git branch: 'jenkins',
-                    url: 'https://github.com/thedatascientistguy-del/https://github.com/thedatascientistguy-del/todo-list.git'
-            }
-        }
-
-        stage('Build and Run Docker Containers') {
-            steps {
-                sh 'docker-compose -f $DOCKER_COMPOSE_FILE down'  // stop old containers
-                sh 'docker-compose -f $DOCKER_COMPOSE_FILE up -d --build'
-            }
-        }
+    stage('Pre-checks') {
+      steps {
+        sh '''
+          echo "Docker version:"
+          docker --version || true
+          echo "Docker compose version:"
+          docker compose version || docker-compose --version || true
+        '''
+      }
     }
 
-    post {
-        always {
-            echo 'Pipeline finished!'
-        }
+    stage('Build images') {
+      steps {
+        sh "${COMPOSE} build --pull --parallel"
+      }
     }
+
+    stage('Start containers') {
+      steps {
+        sh "${COMPOSE} up -d"
+      }
+    }
+
+    stage('Smoke test') {
+      steps {
+        sh '''
+          echo "Waiting for services..."
+          sleep 5
+          echo "Containers:"
+          docker ps --filter "name=jenkins_fastapi" --filter "name=jenkins_mongo"
+          # Try basic HTTP GET (adjust path if your app healthcheck endpoint differs)
+          if curl --fail --retry 5 --retry-delay 2 http://localhost:9000/ ; then
+            echo "Smoke test succeeded"
+          else
+            echo "Smoke test failed - printing logs"
+            ${COMPOSE} ps
+            ${COMPOSE} logs --tail=200
+            exit 1
+          fi
+        '''
+      }
+    }
+  }
+
+  post {
+    failure {
+      sh '''
+        echo "Pipeline failed - docker ps and last logs:"
+        docker ps -a --filter "name=jenkins_fastapi" --filter "name=jenkins_mongo"
+        docker stats --no-stream || true
+        ${COMPOSE} logs --tail=400 || true
+      '''
+    }
+    always {
+      echo "Pipeline finished."
+    }
+  }
 }
+

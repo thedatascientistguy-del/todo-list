@@ -1,24 +1,33 @@
 version: "3.8"
 
 services:
-  mongo:
+  jenkins_mongo:
     image: mongo:6.0
-    container_name: mongo_jenkins
+    container_name: jenkins_mongo
+    restart: unless-stopped
     ports:
-      - "27018:27017"
+      - "27018:27017"          # host port 27018 -> mongo 27017 (different port)
     volumes:
       - mongo_data_jenkins:/data/db
 
-  webapp:
-    image: python:3.11
-    container_name: webapp_jenkins
-    working_dir: /app
-    volumes:
-      - /home/ubuntu/myproject:/app
+  jenkins_fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jenkins_fastapi
+    restart: unless-stopped
     ports:
-      - "8000:8000"  # FastAPI port
+      - "9000:8000"            # host 8081 -> container 8000 (different from Part I) 
+    volumes:
+      - ./:/app                # <-- mount the repo code into container (requirement)
+    working_dir: /app
+    environment:
+      - MONGO_URI=mongodb://jenkins_mongo:27017
+    depends_on:
+      - jenkins_mongo
     command: >
-      sh -c "pip install --no-cache-dir -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8000"
+      sh -c "uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
 volumes:
   mongo_data_jenkins:
+
