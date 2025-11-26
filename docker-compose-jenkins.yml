@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  # MongoDB service
+  mongo:
+    image: mongo:6.0
+    container_name: mongo_jenkins
+    ports:
+      - "27018:27017"   # Expose MongoDB on EC2 port 27018
+    volumes:
+      - mongo_data_jenkins:/data/db
+    restart: unless-stopped
+
+  # Web application service
+  webapp:
+    image: node:20
+    container_name: webapp_jenkins
+    working_dir: /app
+    volumes:
+      - /home/ubuntu/myproject:/app
+    ports:
+      - "8000:8000"   # App 1
+      - "9000:9000"   # App 2
+    command: >
+      sh -c "npm install && npm start"
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+volumes:
+  mongo_data_jenkins:
