@@ -19,8 +19,6 @@ class TestTodoApp(unittest.TestCase):
 
         cls.driver = webdriver.Chrome(options=chrome_options)
         cls.driver.get(cls.base_url)
-        chrome_options.add_argument("--disable-features=GoogleWebComponentsV0Enabled")
-
         time.sleep(2)
 
     @classmethod
@@ -32,7 +30,6 @@ class TestTodoApp(unittest.TestCase):
     # ---------------------------------------------------
     def test_01_page_loads(self):
         self.assertIn("Todo List", self.driver.page_source)
-        print("✅ test_01_page_loads passed")
 
     # ---------------------------------------------------
     # 2. Check Input Box Presence
@@ -40,7 +37,6 @@ class TestTodoApp(unittest.TestCase):
     def test_02_input_box_exists(self):
         input_box = self.driver.find_element(By.NAME, "title")
         self.assertIsNotNone(input_box)
-        print("✅ test_02_input_box_exists passed")
 
     # ---------------------------------------------------
     # 3. Add Todo Test
@@ -53,7 +49,6 @@ class TestTodoApp(unittest.TestCase):
 
         page = self.driver.page_source
         self.assertIn("Selenium Test Todo", page)
-        print("✅ test_03_add_todo passed")
 
     # ---------------------------------------------------
     # 4. Add Empty Todo Should Fail (HTML Required)
@@ -64,10 +59,10 @@ class TestTodoApp(unittest.TestCase):
         input_box.send_keys(Keys.RETURN)
         time.sleep(1)
 
+        # should remain on same page, no new empty item added
         item_list = self.driver.find_elements(By.CLASS_NAME, "todo-item")
         titles = [item.text.strip() for item in item_list]
         self.assertNotIn("", titles)
-        print("✅ test_04_empty_todo_not_allowed passed")
 
     # ---------------------------------------------------
     # 5. Toggle Todo Completion
@@ -79,10 +74,9 @@ class TestTodoApp(unittest.TestCase):
 
         todo_item = self.driver.find_element(By.CLASS_NAME, "todo-item")
         self.assertTrue("completed" in todo_item.get_attribute("class"))
-        print("✅ test_05_toggle_todo passed")
 
     # ---------------------------------------------------
-    # 6. Undo Toggle
+    # 6. Undo Togge
     # ---------------------------------------------------
     def test_06_undo_toggle(self):
         toggle_btn = self.driver.find_element(By.CLASS_NAME, "toggle-btn")
@@ -91,7 +85,6 @@ class TestTodoApp(unittest.TestCase):
 
         todo_item = self.driver.find_element(By.CLASS_NAME, "todo-item")
         self.assertFalse("completed" in todo_item.get_attribute("class"))
-        print("✅ test_06_undo_toggle passed")
 
     # ---------------------------------------------------
     # 7. Delete Todo Item
@@ -103,7 +96,6 @@ class TestTodoApp(unittest.TestCase):
 
         todo_items = self.driver.find_elements(By.CLASS_NAME, "todo-item")
         self.assertTrue(len(todo_items) >= 0)  # no error = pass
-        print("✅ test_07_delete_todo passed")
 
     # ---------------------------------------------------
     # 8. CSS Style Check
@@ -112,7 +104,6 @@ class TestTodoApp(unittest.TestCase):
         container = self.driver.find_element(By.CLASS_NAME, "container")
         bg = container.value_of_css_property("background-color")
         self.assertIsNotNone(bg)
-        print(f"✅ test_08_css_background passed with background-color: {bg}")
 
     # ---------------------------------------------------
     # 9. JS Loaded Check
@@ -120,7 +111,6 @@ class TestTodoApp(unittest.TestCase):
     def test_09_javascript_loaded(self):
         result = self.driver.execute_script("return typeof toggleTodo")
         self.assertEqual(result, "function")
-        print("✅ test_09_javascript_loaded passed")
 
     # ---------------------------------------------------
     # 10. Add Multiple Todos
@@ -136,7 +126,6 @@ class TestTodoApp(unittest.TestCase):
         self.assertIn("Todo 0", page)
         self.assertIn("Todo 1", page)
         self.assertIn("Todo 2", page)
-        print("✅ test_10_multiple_todos passed")
 
 
 if __name__ == "__main__":
