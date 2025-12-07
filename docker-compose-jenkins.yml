@@ -10,13 +10,15 @@ services:
       - mongo_data_jenkins:/data/db
 
   webapp:
-    image: python:3.11
+    build: .
     container_name: webapp_jenkins
     working_dir: /app
     volumes:
       - /home/ubuntu/myproject:/app
     ports:
       - "8000:8000"  # FastAPI port
+    depends_on:
+      - mongo
     command: >
       sh -c "pip install --no-cache-dir -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 8000"
 

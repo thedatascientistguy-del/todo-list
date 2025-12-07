@@ -3,3 +3,7 @@ uvicorn
 jinja2
 python-multipart
 pymongo
+selenium
+pytest
+webdriver-manager
+requests
