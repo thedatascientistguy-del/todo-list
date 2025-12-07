@@ -40,9 +40,8 @@ pipeline {
 
         stage('Test') {
             steps {
-                // Run tests inside the webapp container
                 sh '''
-                docker exec -i webapp_jenkins bash -c "pip install --no-cache-dir -r requirements.txt && pytest"
+                docker exec -i webapp_jenkins bash -c "cd /app && pip install --no-cache-dir -r requirements.txt && pytest"
                 '''
             }
         }
