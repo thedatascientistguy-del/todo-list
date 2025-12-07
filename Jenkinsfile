@@ -44,7 +44,10 @@ pipeline {
                 sh '''
                 echo "Waiting for FastAPI server..."
                 for i in {1..30}; do
-                    curl -s $FASTAPI_URL && break
+                    if curl -s $FASTAPI_URL > /dev/null; then
+                        echo "FastAPI is ready!"
+                        break
+                    fi
                     echo "Server not ready, retrying..."
                     sleep 2
                 done
@@ -56,16 +59,9 @@ pipeline {
             steps {
                 sh '''
                 echo "Running Selenium tests..."
-
-                # Run Selenium tests inside the container but ensure FastAPI is backgrounded
                 docker exec -i webapp_jenkins bash -c "
                 cd /app &&
-                uvicorn main:app --host 0.0.0.0 --port 8000 & 
-                SERVER_PID=$! &&
-                echo 'FastAPI started with PID' $SERVER_PID &&
-                sleep 5 &&
-                pytest selenium-tests/test_todo_app.py --disable-warnings &&
-                kill $SERVER_PID
+                pytest selenium-tests/test_todo_app.py --disable-warnings
                 "
                 '''
             }
