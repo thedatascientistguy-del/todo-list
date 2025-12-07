@@ -10,7 +10,7 @@ pipeline {
         stage('Clean Workspace') {
             steps {
                 echo "Cleaning workspace..."
-                deleteDir()  // wipes the entire Jenkins workspace
+                deleteDir()
             }
         }
 
@@ -30,33 +30,40 @@ pipeline {
 
         stage('Build and Run Docker Containers') {
             steps {
-                // Stop and remove old containers
                 sh 'docker compose -f $DOCKER_COMPOSE_FILE down -v'
-                
-                // Build and start containers
                 sh 'docker compose -f $DOCKER_COMPOSE_FILE up -d --build'
             }
         }
 
-        stage('Test') {
+        stage('Wait for FastAPI') {
             steps {
                 sh '''
+                echo "Waiting for FastAPI server..."
+                for i in {1..30}; do
+                    curl -s http://127.0.0.1:8000/ && break
+                    echo "Server not ready, retrying..."
+                    sleep 2
+                done
+                '''
+            }
+        }
+
+        stage('Run Selenium Tests') {
+            steps {
+                sh '''
+                echo "Running Selenium tests..."
                 docker exec -i webapp_jenkins bash -c "
                 cd /app &&
-                uvicorn main:app --host 0.0.0.0 --port 8000 & 
-                sleep 5 &&
-                pytest selenium-tests/test_todo_app.py
+                pytest selenium-tests/test_todo_app.py --disable-warnings
                 "
                 '''
             }
         }
 
-
         stage('Smoke Test') {
             steps {
-                // Check if the FastAPI app is up
                 sh '''
-                curl -f http://localhost:8000 || exit 1
+                curl -f http://127.0.0.1:8000 || exit 1
                 echo "FastAPI app is running!"
                 '''
             }
@@ -66,11 +73,7 @@ pipeline {
     post {
         always {
             echo 'Pipeline finished!'
-
-            // Show running containers
             sh 'docker ps -a'
-
-            // Show latest logs from docker-compose services
             sh 'docker compose -f $DOCKER_COMPOSE_FILE logs --tail=100'
         }
     }

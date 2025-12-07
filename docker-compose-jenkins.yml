@@ -13,9 +13,8 @@ services:
     build: .
     container_name: webapp_jenkins
     working_dir: /app
-
     ports:
-      - "8000:8000"  # FastAPI port
+      - "8000:8000"
     depends_on:
       - mongo
     command: >
