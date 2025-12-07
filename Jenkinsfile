@@ -30,25 +30,26 @@ pipeline {
 
         stage('Build and Run Docker Containers') {
             steps {
-                sh 'docker compose -f $DOCKER_COMPOSE_FILE down -v'  // stop and remove old containers
+                // Stop and remove old containers
+                sh 'docker compose -f $DOCKER_COMPOSE_FILE down -v'
+                
+                // Build and start containers
                 sh 'docker compose -f $DOCKER_COMPOSE_FILE up -d --build'
             }
         }
 
         stage('Test') {
             steps {
+                // Run tests inside the webapp container
                 sh '''
-                docker run --rm \
-                -v $PWD:/tests \
-                -w /tests \
-                selenium/standalone-chrome:115.0 \
-                bash -c "pip install -r requirements.txt && pytest"
+                docker exec -i webapp_jenkins bash -c "pip install --no-cache-dir -r requirements.txt && pytest"
                 '''
             }
         }
 
         stage('Smoke Test') {
             steps {
+                // Check if the FastAPI app is up
                 sh '''
                 curl -f http://localhost:8000 || exit 1
                 echo "FastAPI app is running!"
@@ -60,7 +61,11 @@ pipeline {
     post {
         always {
             echo 'Pipeline finished!'
+
+            // Show running containers
             sh 'docker ps -a'
+
+            // Show latest logs from docker-compose services
             sh 'docker compose -f $DOCKER_COMPOSE_FILE logs --tail=100'
         }
     }
