@@ -29,16 +29,16 @@ pipeline {
 
         stage('Test') {
             steps {
-                // Run Selenium tests using Maven + Chrome Docker image
                 sh '''
                 docker run --rm \
-                  -v $PWD:/tests \
-                  -w /tests \
-                  markhobson/maven-chrome:latest \
-                  mvn test
+                -v $PWD:/tests \
+                -w /tests \
+                selenium/standalone-chrome:115.0 \
+                bash -c "pip install -r requirements.txt && pytest"
                 '''
             }
         }
+
 
         stage('Smoke Test') {
             steps {
