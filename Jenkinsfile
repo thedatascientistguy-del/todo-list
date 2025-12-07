@@ -41,10 +41,16 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                docker exec -i webapp_jenkins bash -c "cd /app && pip install --no-cache-dir -r requirements.txt && pytest"
+                docker exec -i webapp_jenkins bash -c "
+                cd /app &&
+                uvicorn main:app --host 0.0.0.0 --port 8000 & 
+                sleep 5 &&
+                pytest selenium-tests/test_todo_app.py
+                "
                 '''
             }
         }
+
 
         stage('Smoke Test') {
             steps {
