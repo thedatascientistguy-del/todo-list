@@ -6,13 +6,14 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies + Chrome dependencies
+# Install system dependencies, Chrome dependencies, and xvfb
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     wget \
     unzip \
     gnupg \
     curl \
+    xvfb \
     fonts-liberation \
     libnss3 \
     libx11-xcb1 \
@@ -31,7 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Google Chrome stable (modern method)
+# Install Google Chrome stable
 RUN wget -q -O /usr/share/keyrings/google-linux-signing-key.gpg https://dl.google.com/linux/linux_signing_key.pub \
     && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-signing-key.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
        > /etc/apt/sources.list.d/google-chrome.list \
@@ -48,7 +49,8 @@ RUN pip install --no-cache-dir -r requirements.txt selenium webdriver-manager
 # Copy all project files
 COPY . /app/
 
+# Expose FastAPI port
 EXPOSE 8000
 
-# Run FastAPI app
+# Default command to run FastAPI
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
