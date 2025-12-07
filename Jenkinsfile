@@ -4,7 +4,6 @@ pipeline {
     environment {
         DOCKER_COMPOSE_FILE = 'docker-compose-jenkins.yml'
         FASTAPI_URL = 'http://127.0.0.1:8000'
-        SELENIUM_CONTAINER = 'webapp_jenkins'
     }
 
     stages {
@@ -25,7 +24,6 @@ pipeline {
 
         stage('Pre-checks') {
             steps {
-                echo "Checking Docker versions..."
                 sh 'docker --version'
                 sh 'docker compose version'
             }
@@ -33,19 +31,19 @@ pipeline {
 
         stage('Build and Run Docker Containers') {
             steps {
-                echo "Stopping and removing old containers..."
-                sh 'docker compose -f $DOCKER_COMPOSE_FILE down -v || true'
+                // Stop and remove old containers
+                sh 'docker compose -f $DOCKER_COMPOSE_FILE down -v'
 
-                echo "Building and starting containers..."
+                // Build and start containers in detached mode
                 sh 'docker compose -f $DOCKER_COMPOSE_FILE up -d --build'
             }
         }
 
         stage('Wait for FastAPI') {
             steps {
-                echo "Waiting for FastAPI to be ready..."
                 sh '''
-                for i in $(seq 1 30); do
+                echo "Waiting for FastAPI server..."
+                for i in {1..30}; do
                     if curl -s $FASTAPI_URL > /dev/null; then
                         echo "FastAPI is ready!"
                         break
@@ -53,30 +51,24 @@ pipeline {
                     echo "Server not ready, retrying..."
                     sleep 2
                 done
-                if ! curl -s $FASTAPI_URL > /dev/null; then
-                    echo "FastAPI did not start in time!"
-                    exit 1
-                fi
                 '''
             }
         }
 
         stage('Run Selenium Tests') {
             steps {
-                echo "Running Selenium tests inside container..."
-                sh """
-                docker exec -i $SELENIUM_CONTAINER bash -c '
-                    cd /app &&
-                    # Ensure Chrome runs in headless mode
-                    pytest selenium-tests/test_todo_app.py --disable-warnings
-                '
-                """
+                sh '''
+                echo "Running Selenium tests..."
+                docker exec -i webapp_jenkins bash -c "
+                cd /app &&
+                pytest selenium-tests/test_todo_app.py --disable-warnings
+                "
+                '''
             }
         }
 
         stage('Smoke Test') {
             steps {
-                echo "Checking FastAPI endpoint..."
                 sh '''
                 curl -f $FASTAPI_URL || exit 1
                 echo "FastAPI app is running!"
@@ -87,7 +79,7 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline finished! Checking container statuses and logs...'
+            echo 'Pipeline finished!'
             sh 'docker ps -a'
             sh 'docker compose -f $DOCKER_COMPOSE_FILE logs --tail=100'
         }
