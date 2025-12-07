@@ -6,7 +6,7 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies + Chrome + ChromeDriver dependencies
+# Install system dependencies + Chrome dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     wget \
@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     fonts-liberation \
     libnss3 \
-    libgconf-2-4 \
     libx11-xcb1 \
     libxcomposite1 \
     libxcursor1 \
@@ -31,7 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxshmfence1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Google Chrome (stable)
+# Install Google Chrome stable
 RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && apt-get update && apt-get install -y google-chrome-stable \
