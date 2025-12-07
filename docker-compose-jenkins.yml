@@ -14,7 +14,7 @@ services:
     container_name: webapp_jenkins
     working_dir: /app
     volumes:
-      - /home/ubuntu/myproject:/app
+      - ${PWD}:/app
     ports:
       - "8000:8000"  # FastAPI port
     depends_on:
