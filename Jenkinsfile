@@ -6,6 +6,14 @@ pipeline {
     }
 
     stages {
+
+        stage('Clean Workspace') {
+            steps {
+                echo "Cleaning workspace..."
+                deleteDir()  // wipes the entire Jenkins workspace
+            }
+        }
+
         stage('Checkout Code') {
             steps {
                 git branch: 'jenkins',
@@ -38,7 +46,6 @@ pipeline {
                 '''
             }
         }
-
 
         stage('Smoke Test') {
             steps {
