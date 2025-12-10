@@ -37,13 +37,49 @@ pipeline {
 
     post {
         always {
+            // Ensure containers are down even if build fails
             sh 'docker compose -f docker-compose-ci.yml down'
         }
+
         success {
             echo 'All tests passed!'
+            emailext(
+                to: 'teacher@example.com',
+                subject: "SUCCESS: Build ${currentBuild.fullDisplayName}",
+                body: """\
+Hello,
+
+The Jenkins build has completed successfully.
+
+Build URL: ${env.BUILD_URL}
+
+All Selenium tests passed!
+
+Regards,
+Jenkins CI
+"""
+            )
         }
+
         failure {
             echo 'Some tests failed.'
+            emailext(
+                to: 'thedatascientistguy@gmail.com',
+                subject: "FAILURE: Build ${currentBuild.fullDisplayName}",
+                body: """\
+Hello,
+
+The Jenkins build has failed.
+
+Build URL: ${env.BUILD_URL}
+
+Please check the console output for details.
+
+Regards,
+Jenkins CI
+""",
+                attachLog: true
+            )
         }
     }
 }
