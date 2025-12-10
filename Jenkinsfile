@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        PATH = "/usr/local/bin:$PATH" // ensures docker compose is found
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -10,27 +14,27 @@ pipeline {
 
         stage('Build & Start App') {
             steps {
-                sh 'docker-compose -f docker-compose-tests.yml build'
-                sh 'docker-compose -f docker-compose-tests.yml up -d web mongodb'
+                sh 'docker compose -f docker-compose-tests.yml build'
+                sh 'docker compose -f docker-compose-tests.yml up -d web mongodb'
             }
         }
 
         stage('Run Selenium Tests') {
             steps {
-                sh 'docker-compose -f docker-compose-tests.yml run --rm selenium_tests'
+                sh 'docker compose -f docker-compose-tests.yml run --rm selenium_tests'
             }
         }
 
         stage('Teardown') {
             steps {
-                sh 'docker-compose -f docker-compose-tests.yml down'
+                sh 'docker compose -f docker-compose-tests.yml down'
             }
         }
     }
 
     post {
         always {
-            sh 'docker-compose -f docker-compose-tests.yml down'
+            sh 'docker compose -f docker-compose-tests.yml down'
         }
         success {
             echo 'All tests passed!'
