@@ -44,7 +44,7 @@ pipeline {
         success {
             echo 'All tests passed!'
             emailext(
-                to: 'teacher@example.com',
+                to: 'thedatascientistguy@gmail.com',
                 subject: "SUCCESS: Build ${currentBuild.fullDisplayName}",
                 body: """\
 Hello,
