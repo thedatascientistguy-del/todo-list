@@ -18,7 +18,7 @@ class TestTodoApp(unittest.TestCase):
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
 
-        cls.base_url = "http://127.0.0.1:8000"
+        cls.base_url = "http://web:8000"
         cls.driver = webdriver.Chrome(options=chrome_options)
 
         # Wait until FastAPI app is ready
