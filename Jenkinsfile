@@ -14,27 +14,30 @@ pipeline {
 
         stage('Build & Start App') {
             steps {
-                sh 'docker compose -f docker-compose.yml build'
-                sh 'docker compose -f docker-compose.yml up -d web mongodb'
+                // Use a separate CI docker-compose to avoid port conflicts
+                sh 'docker compose -f docker-compose-ci.yml build'
+                sh 'docker compose -f docker-compose-ci.yml up -d web mongodb'
             }
         }
 
         stage('Run Selenium Tests') {
             steps {
-                sh 'docker compose -f docker-compose.yml run --rm selenium_tests'
+                // Runs the selenium_tests service defined in docker-compose-ci.yml
+                sh 'docker compose -f docker-compose-ci.yml run --rm selenium_tests'
             }
         }
 
         stage('Teardown') {
             steps {
-                sh 'docker compose -f docker-compose.yml down'
+                // Tear down CI containers, networks, and volumes
+                sh 'docker compose -f docker-compose-ci.yml down'
             }
         }
     }
 
     post {
         always {
-            sh 'docker compose -f docker-compose.yml down'
+            sh 'docker compose -f docker-compose-ci.yml down'
         }
         success {
             echo 'All tests passed!'
