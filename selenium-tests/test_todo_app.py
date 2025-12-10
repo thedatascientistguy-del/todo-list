@@ -97,17 +97,24 @@ class TestTodoApp(unittest.TestCase):
         )
         self.assertTrue("completed" in todo_item.get_attribute("class"))
 
+
     # 6. Undo Toggle
     def test_06_undo_toggle(self):
-        toggle_btn = WebDriverWait(self.driver, 10).until(
-            EC.element_to_be_clickable((By.CLASS_NAME, "toggle-btn"))
-        )
-        toggle_btn.click()
+        # Get all todos and their toggle buttons
+        todo_items = self.driver.find_elements(By.CLASS_NAME, "todo-item")
+        toggle_btns = self.driver.find_elements(By.CLASS_NAME, "toggle-btn")
 
+        # Click the toggle button for the last todo
+        toggle_btns[-1].click()
+
+        # Wait until the "completed" class is removed
         todo_item = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "todo-item"))
+            lambda d: "completed" not in d.find_elements(By.CLASS_NAME, "todo-item")[-1].get_attribute("class") and
+                    d.find_elements(By.CLASS_NAME, "todo-item")[-1]
         )
+
         self.assertFalse("completed" in todo_item.get_attribute("class"))
+
 
     # 7. Delete Todo Item
     def test_07_delete_todo(self):
@@ -133,7 +140,6 @@ class TestTodoApp(unittest.TestCase):
         result = self.driver.execute_script("return typeof toggleTodo")
         self.assertEqual(result, "function")
 
-    # 10. Add Multiple Todos
     def test_10_multiple_todos(self):
         for i in range(3):
             input_box = WebDriverWait(self.driver, 10).until(
@@ -143,9 +149,10 @@ class TestTodoApp(unittest.TestCase):
             input_box.send_keys(f"Todo {i}")
             input_box.send_keys(Keys.RETURN)
 
-            # wait for last added todo
+            # Wait until the last todo item contains the text we just added
             WebDriverWait(self.driver, 10).until(
-                lambda d: d.find_elements(By.CLASS_NAME, "todo-item")[-1]
+                lambda d: len(d.find_elements(By.CLASS_NAME, "todo-item")) > 0 and 
+                        f"Todo {i}" in d.find_elements(By.CLASS_NAME, "todo-item")[-1].text
             )
 
         # Extract only the first line (title) to assert

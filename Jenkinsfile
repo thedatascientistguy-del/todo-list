@@ -2,86 +2,46 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_COMPOSE_FILE = 'docker-compose-jenkins.yml'
-        FASTAPI_URL = 'http://127.0.0.1:8000'
+        DOCKER_HOST = 'tcp://localhost:2375' // if using Docker without sudo
     }
 
     stages {
-
-        stage('Clean Workspace') {
+        stage('Checkout') {
             steps {
-                echo "Cleaning workspace..."
-                deleteDir()
+                git branch: 'jenkinsAsg3',
+                url: 'https://github.com/thedatascientistguy-del/todo-list.git'
             }
         }
 
-        stage('Checkout Code') {
+        stage('Build & Start App') {
             steps {
-                git branch: 'jenkins',
-                    url: 'https://github.com/thedatascientistguy-del/todo-list.git'
-            }
-        }
-
-        stage('Pre-checks') {
-            steps {
-                sh 'docker --version'
-                sh 'docker compose version'
-            }
-        }
-
-        stage('Build and Run Docker Containers') {
-            steps {
-                // Stop and remove old containers
-                sh 'docker compose -f $DOCKER_COMPOSE_FILE down -v'
-
-                // Build and start containers in detached mode
-                sh 'docker compose -f $DOCKER_COMPOSE_FILE up -d --build'
-            }
-        }
-
-        stage('Wait for FastAPI') {
-            steps {
-                sh '''
-                echo "Waiting for FastAPI server..."
-                for i in {1..30}; do
-                    if curl -s $FASTAPI_URL > /dev/null; then
-                        echo "FastAPI is ready!"
-                        break
-                    fi
-                    echo "Server not ready, retrying..."
-                    sleep 2
-                done
-                '''
+                sh 'docker-compose -f docker-compose-tests.yml build'
+                sh 'docker-compose -f docker-compose-tests.yml up -d web mongodb'
             }
         }
 
         stage('Run Selenium Tests') {
             steps {
-                sh '''
-                echo "Running Selenium tests..."
-                docker exec -i webapp_jenkins bash -c "
-                cd /app &&
-                pytest selenium-tests/test_todo_app.py --disable-warnings
-                "
-                '''
+                sh 'docker-compose -f docker-compose-tests.yml run --rm selenium_tests'
             }
         }
 
-        stage('Smoke Test') {
+        stage('Teardown') {
             steps {
-                sh '''
-                curl -f $FASTAPI_URL || exit 1
-                echo "FastAPI app is running!"
-                '''
+                sh 'docker-compose -f docker-compose-tests.yml down'
             }
         }
     }
 
     post {
         always {
-            echo 'Pipeline finished!'
-            sh 'docker ps -a'
-            sh 'docker compose -f $DOCKER_COMPOSE_FILE logs --tail=100'
+            sh 'docker-compose -f docker-compose-tests.yml down'
+        }
+        success {
+            echo 'All tests passed!'
+        }
+        failure {
+            echo 'Some tests failed.'
         }
     }
 }

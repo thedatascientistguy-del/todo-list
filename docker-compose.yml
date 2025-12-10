@@ -23,6 +23,18 @@ services:
       - todo_network
     restart: always
 
+  selenium_tests:
+    image: selenium/standalone-chrome
+    container_name: selenium_test
+    volumes:
+      - ./selenium-tests:/tests
+    network_mode: "host"
+    depends_on:
+      - web
+    command: >
+      sh -c "pip install -r /tests/requirements.txt &&
+             python /tests/test_todo_app.py"
+
 networks:
   todo_network:
     driver: bridge
