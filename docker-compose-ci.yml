@@ -22,15 +22,13 @@ services:
       - todo_network
 
   selenium_tests:
-    image: python:3.11
-    working_dir: /app
-    volumes:
-      - ./selenium-tests:/app
+    build:
+      context: .
+      dockerfile: Dockerfile.selenium
     depends_on:
       - web
     networks:
       - todo_network
-    command: ["python", "test_todo_app.py"]
 
 networks:
   todo_network:
