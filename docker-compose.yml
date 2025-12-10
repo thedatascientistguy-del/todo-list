@@ -5,11 +5,14 @@ services:
     image: faq4265/todo-list:latest
     container_name: web_asg2
     ports:
-      - "8000:8000"   # original port
+      - "8000:8000"
     environment:
       - MONGODB_URL=mongodb://mongodb_asg2:27017/
     volumes:
-      - ./app:/app     # required change for Part-II
+      - ./:/app  # Jenkins workspace mounted into container
+    command: >
+      sh -c "pip install -r /app/requirements.txt &&
+             uvicorn main:app --host 0.0.0.0 --port 8000"
     depends_on:
       - mongodb
     networks:
@@ -20,7 +23,7 @@ services:
     image: mongo:latest
     container_name: mongodb_asg2
     ports:
-      - "27017:27017"   # original port
+      - "27017:27017"
     volumes:
       - mongodb_data_asg2:/data/db
     networks:
