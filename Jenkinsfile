@@ -1,15 +1,10 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_HOST = 'tcp://localhost:2375' // if using Docker without sudo
-    }
-
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'jenkinsAsg3',
-                url: 'https://github.com/thedatascientistguy-del/todo-list.git'
+                git branch: 'jenkinsAsg3', url: 'https://github.com/thedatascientistguy-del/todo-list.git'
             }
         }
 
