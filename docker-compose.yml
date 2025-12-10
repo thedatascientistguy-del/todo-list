@@ -3,10 +3,13 @@ version: '3.8'
 services:
   web:
     image: faq4265/todo-list:latest
+    container_name: web_asg2
     ports:
-      - "8000:8000"
+      - "8000:8000"   # original port
     environment:
-      - MONGODB_URL=mongodb://mongodb:27017/
+      - MONGODB_URL=mongodb://mongodb_asg2:27017/
+    volumes:
+      - ./app:/app     # required change for Part-II
     depends_on:
       - mongodb
     networks:
@@ -15,10 +18,11 @@ services:
 
   mongodb:
     image: mongo:latest
+    container_name: mongodb_asg2
     ports:
-      - "27017:27017"
+      - "27017:27017"   # original port
     volumes:
-      - mongodb_data:/data/db
+      - mongodb_data_asg2:/data/db
     networks:
       - todo_network
     restart: always
@@ -28,4 +32,4 @@ networks:
     driver: bridge
 
 volumes:
-  mongodb_data:
+  mongodb_data_asg2:

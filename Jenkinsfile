@@ -2,43 +2,48 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "faq4265/todo-list:latest"
-        DOCKER_REGISTRY = "https://index.docker.io/v1/"
+        DOCKERHUB_IMAGE = "faq4265/todo-list:latest"
     }
 
     stages {
-        stage('Checkout SCM') {
+
+        stage('Checkout Code') {
             steps {
-                git branch: 'main',
+                git branch: 'jenkinsAsg2',
                     url: 'https://github.com/thedatascientistguy-del/todo-list.git'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Pull Docker Images') {
             steps {
-                script {
-                    docker.build("${DOCKER_IMAGE}")
-                }
+                sh 'docker pull ${DOCKERHUB_IMAGE}'
+                sh 'docker pull mongo:latest'
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Build & Run using Docker Compose') {
             steps {
-                script {
-                    docker.withRegistry("${DOCKER_REGISTRY}", 'docker-hub-creds') {
-                        docker.image("${DOCKER_IMAGE}").push()
-                    }
-                }
+                sh '''
+                echo "Stopping old containers..."
+                docker compose down || true
+
+                echo "Starting new containers..."
+                docker compose up -d --force-recreate
+                '''
+            }
+        }
+
+        stage('Verify Running Containers') {
+            steps {
+                sh 'docker ps'
             }
         }
     }
 
     post {
-        success {
-            echo "✅ Docker image built and pushed successfully!"
-        }
-        failure {
-            echo "❌ Build or push failed!"
+        always {
+            echo "Build complete. Cleaning unused data..."
+            sh 'docker system prune -f'
         }
     }
 }
