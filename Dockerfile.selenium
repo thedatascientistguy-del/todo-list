@@ -1,17 +1,21 @@
 FROM python:3.11
 
+# Install Chromium and dependencies
+RUN apt-get update && apt-get install -y \
+    chromium \
+    chromium-driver \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Copy the root requirements.txt
+# Copy requirements and install Python packages
 COPY requirements.txt ./requirements.txt
-
-# Install all dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy your selenium-tests folder into the container
+# Copy selenium-tests
 COPY selenium-tests/ ./selenium-tests
 
 WORKDIR /app/selenium-tests
 
-# Default command to run your tests
+# Default command to run tests
 CMD ["python", "test_todo_app.py"]
