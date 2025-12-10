@@ -14,27 +14,27 @@ pipeline {
 
         stage('Build & Start App') {
             steps {
-                sh 'docker compose -f docker-compose-tests.yml build'
-                sh 'docker compose -f docker-compose-tests.yml up -d web mongodb'
+                sh 'docker compose -f docker-compose.yml build'
+                sh 'docker compose -f docker-compose.yml up -d web mongodb'
             }
         }
 
         stage('Run Selenium Tests') {
             steps {
-                sh 'docker compose -f docker-compose-tests.yml run --rm selenium_tests'
+                sh 'docker compose -f docker-compose.yml run --rm selenium_tests'
             }
         }
 
         stage('Teardown') {
             steps {
-                sh 'docker compose -f docker-compose-tests.yml down'
+                sh 'docker compose -f docker-compose.yml down'
             }
         }
     }
 
     post {
         always {
-            sh 'docker compose -f docker-compose-tests.yml down'
+            sh 'docker compose -f docker-compose.yml down'
         }
         success {
             echo 'All tests passed!'
