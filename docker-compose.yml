@@ -4,7 +4,7 @@ services:
   web:
     image: faq4265/todo-list:latest
     ports:
-      - "8000:8000"
+      - "9000:8000"  # map CI container port 8000 to host 9000
     environment:
       - MONGODB_URL=mongodb://mongodb:27017/
     depends_on:
@@ -16,28 +16,16 @@ services:
   mongodb:
     image: mongo:latest
     ports:
-      - "27017:27017"
+      - "27018:27017"  # avoid conflict with your live Mongo
     volumes:
-      - mongodb_data:/data/db
+      - mongodb_ci_data:/data/db
     networks:
       - todo_network
     restart: always
-
-  selenium_tests:
-    image: selenium/standalone-chrome
-    container_name: selenium_test
-    volumes:
-      - ./selenium-tests:/tests
-    network_mode: "host"
-    depends_on:
-      - web
-    command: >
-      sh -c "pip install -r /tests/requirements.txt &&
-             python /tests/test_todo_app.py"
 
 networks:
   todo_network:
     driver: bridge
 
 volumes:
-  mongodb_data:
+  mongodb_ci_data:
