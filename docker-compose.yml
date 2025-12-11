@@ -5,7 +5,7 @@ services:
     image: faq4265/todo-list:latest
     container_name: web_asg2
     ports:
-      - "8000:8000"
+      - "${APP_PORT:-8000}:8000"
     environment:
       - MONGODB_URL=mongodb://mongodb_asg2:27017/
     volumes:
