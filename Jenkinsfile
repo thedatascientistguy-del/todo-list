@@ -65,7 +65,7 @@ Jenkins CI
         failure {
             echo 'Some tests failed.'
             emailext(
-                to: 'thedatascientistguy@gmail.com',
+                to: 'qasimalik@gmail.com',
                 subject: "FAILURE: Build ${currentBuild.fullDisplayName}",
                 body: """\
 Hello,
